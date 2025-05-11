@@ -1,86 +1,80 @@
-from random import randint, choice
+import random
 from tkinter import *
-import pyperclip
+import string
 
-upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-signs = ['+', '=', '(', ')', '*', '&', '?', '^', '$', '#', '@', '-', '!', '~', '`', ':', ';', '/', ',', '.', '{', '}', '>', '<', '|', '[', ']', '%', '"', "'"]
 
-def generate():
-
-    out = ''
-    seq = []
+def generate(upper: bool, lower: bool, digits: bool, special: bool, length: int) -> str:
+    alphabet = ''
+    if upper: alphabet += string.ascii_uppercase
+    if lower: alphabet += string.ascii_lowercase
+    if digits: alphabet += string.digits
+    if special: alphabet += string.punctuation
     
-    up = isUpper.get()
-    low = isLower.get()
-    nums = isNum.get()
-    sign = isSigns.get()
-    
-    if length.get() == '':
-        output('Error: need to select password length', 'red')
-        return 0
+    return ''.join(random.choices(alphabet, k=length))
 
-    ln = int(length.get())
-    
-    a = up + low + nums + sign
-    if a == 0: 
-        output('Error: need to select some settings options', 'red')
-        return 0
-        
-    if up: seq.append('up')
-    if low: seq.append('low')
-    if nums: seq.append('nums')
-    if sign: seq.append('sign')
-    
-    for i1 in range(ln):
-        b = choice(seq)
-        if b == 'up': out += upper[randint(0, 25)]
-        elif b == 'low': out += lower[randint(0, 25)]
-        elif b == 'nums': out += num[randint(0, 9)]
-        else: out += signs[randint(0, 29)]
-                
-    output(out, 'black')
-    
-def output(out, color):
-    out_entry = Entry(gen, foreground = color, width = 50)
-    out_entry.insert(0, out)
-    out_entry.grid(row = 2, column = 4)
-    pyperclip.copy(out)
 
-gen = Tk()
-gen.geometry('560x140')
-gen.title('Password generator')
-gen.resizable(width = False, height = False)
+def entry_update_text(entry: Entry, text: str) -> None:
+    entry.delete(0, len(entry.get()))
+    entry.insert(0, text)
 
-isUpper = BooleanVar()
-isLower = BooleanVar()
-isNum = BooleanVar()
-isSigns = BooleanVar()
-length = StringVar()
 
-settings_text = Label(gen, text = 'Settings:')
-settings_text.grid(row = 0, column = 0)
+def generate_button_clicked(entry: Entry, is_upper: BooleanVar, is_lower: BooleanVar, is_digits: BooleanVar, is_special: BooleanVar, length: StringVar) -> None:
+    try:
+        length_int = int(length.get())
+    except ValueError:
+        entry_update_text(entry, "Enter a correct integer")
+        entry.configure(foreground='red')
+        return
+    generated = generate(is_upper.get(), is_lower.get(), is_digits.get(), is_special.get(), length_int)
+    entry_update_text(entry, generated)
+    entry.configure(foreground='black')
+    entry.clipboard_clear()
+    entry.clipboard_append(generated)
 
-len_pass = Label(gen, text = 'Length of password:')
-len_pass.grid(row = 4, column = 0)
 
-len_pass_input = Entry(gen, textvariable = length)
-len_pass_input.grid(row = 4, column = 1)
+def main() -> None:
+    root = Tk()
+    root.geometry('560x140')
+    root.title('Password Generator')
+    root.resizable(width=False, height=False)
 
-flag1 = Checkbutton(gen, text = 'Upper symbols', variable = isUpper, onvalue = True, offvalue = False)
-flag1.grid(row = 0, column = 1)
+    is_upper = BooleanVar()
+    is_lower = BooleanVar()
+    is_digits = BooleanVar()
+    is_special = BooleanVar()
+    length = StringVar()
 
-flag2 = Checkbutton(gen, text = 'Lower symbols', variable = isLower, onvalue = True, offvalue = False)
-flag2.grid(row = 1, column = 1)
+    settings_text = Label(root, text='Settings:')
+    settings_text.grid(row=0, column=0)
 
-flag3 = Checkbutton(gen, text = 'Number symbols', variable = isNum, onvalue = True, offvalue = False)
-flag3.grid(row = 2, column = 1)
+    len_pass = Label(root, text='Length of password:')
+    len_pass.grid(row=4, column=0)
 
-flag4 = Checkbutton(gen, text = 'Special symbols', variable = isSigns, onvalue = True, offvalue = False)
-flag4.grid(row = 3, column = 1)
+    len_pass_input = Entry(root, textvariable=length)
+    len_pass_input.grid(row=4, column=1)
 
-gen_button = Button(gen, text = 'Generate', command = generate)
-gen_button.grid(row = 1, column = 4)
+    upper_flag = Checkbutton(root, text='Upper letters', variable=is_upper, onvalue=True, offvalue=False)
+    upper_flag.grid(row=0, column=1, sticky='W')
 
-gen.mainloop()
+    lower_flag = Checkbutton(root, text='Lower letters', variable=is_lower, onvalue=True, offvalue=False)
+    lower_flag.grid(row=1, column=1, sticky='W')
+
+    digits_flag = Checkbutton(root, text='Digits', variable=is_digits, onvalue=True, offvalue=False)
+    digits_flag.grid(row=2, column=1, sticky='W')
+
+    special_flag = Checkbutton(root, text='Special symbols', variable=is_special, onvalue=True, offvalue=False)
+    special_flag.grid(row=3, column=1, sticky='W')
+
+    output_entry = Entry(root)
+    output_entry.grid(column=3, row=1)
+
+    generate_button = Button(root, text='Generate', command=lambda : generate_button_clicked(output_entry, is_upper, is_lower, is_digits, is_special, length))
+    generate_button.grid(row=0, column=3)
+
+    print(output_entry.grid_info())
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
