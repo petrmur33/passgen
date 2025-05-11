@@ -71,8 +71,6 @@ def main() -> None:
     generate_button = Button(root, text='Generate', command=lambda : generate_button_clicked(output_entry, is_upper, is_lower, is_digits, is_special, length))
     generate_button.grid(row=0, column=3)
 
-    print(output_entry.grid_info())
-
     root.mainloop()
 
 
